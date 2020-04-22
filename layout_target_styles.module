@@ -25,19 +25,21 @@ function layout_target_styles_form_alter(&$form, FormStateInterface $formState) 
     // and we need to update those objects before that happens.
     array_unshift($form['#submit'], '_layout_target_styles_submit_block_form');
 
-    $form['layout_target_styles_html_classes'] = [
-      '#type' => 'textfield',
-      '#title' => t('HTML Classes'),
-      '#default_value' => $component->get('layout_target_styles_html_classes'),
-      '#weight' => 91,
-    ];
-
     $form['layout_target_styles_html_id'] = [
       '#type' => 'textfield',
       '#title' => t('HTML ID'),
       '#default_value' => $component->get('layout_target_styles_html_id'),
-      '#weight' => 91,
+      '#weight' => 80,
     ];
+
+    $form['layout_target_styles_html_classes'] = [
+      '#type' => 'textfield',
+      '#title' => t('HTML Classes'),
+      '#default_value' => $component->get('layout_target_styles_html_classes'),
+      '#weight' => 81,
+    ];
+
+    $form['actions']['#weight'] = 100;
   }
 }
 
@@ -72,18 +74,21 @@ function layout_target_styles_form_layout_builder_configure_section_alter(&$form
   // and we need to update those objects before that happens.
   array_unshift($form['#submit'], '_layout_target_styles_submit_section_form');
 
-  $form['layout_target_styles_html_classes'] = [
-    '#type' => 'textfield',
-    '#title' => t('HTML Classes'),
-    '#default_value' => $config['layout_target_styles_html_classes'] ?? '',
-    '#weight' => 91,
-  ];
   $form['layout_target_styles_html_id'] = [
     '#type' => 'textfield',
     '#title' => t('HTML ID'),
     '#default_value' => $config['layout_target_styles_html_id'] ?? '',
-    '#weight' => 91,
+    '#weight' => 80,
   ];
+
+  $form['layout_target_styles_html_classes'] = [
+    '#type' => 'textfield',
+    '#title' => t('HTML Classes'),
+    '#default_value' => $config['layout_target_styles_html_classes'] ?? '',
+    '#weight' => 81,
+  ];
+
+  $form['actions']['#weight'] = 100;
 }
 
 /**
