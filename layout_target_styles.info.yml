@@ -1,0 +1,7 @@
+name: Layout Target Styles
+description: Apply classes and HTML IDs to blocks in Layout Builder to style with CSS.
+core: 8.x
+core_version_requirement: ^8 || ^9
+type: module
+dependencies:
+  - drupal:layout_builder

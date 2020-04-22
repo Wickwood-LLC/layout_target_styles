@@ -1,0 +1,126 @@
+<?php
+
+/**
+ * @file
+ * Layout Builder Styles module file.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\layout_target_styles\LayoutBuilderStyleInterface;
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Modify the configuration form for layout builder components (blocks).
+ */
+function layout_target_styles_form_alter(&$form, FormStateInterface $formState) {
+  if ($form['#form_id'] === 'layout_builder_add_block' || $form['#form_id'] === 'layout_builder_update_block') {
+    /** @var \Drupal\layout_builder\Form\ConfigureBlockFormBase $formObject */
+    $formObject = $formState->getFormObject();
+
+    $component = $formObject->getCurrentComponent();
+
+    // Our submit handler must execute before the default one, because the
+    // default handler stores the section & component data in the tempstore
+    // and we need to update those objects before that happens.
+    array_unshift($form['#submit'], '_layout_target_styles_submit_block_form');
+
+    $form['layout_target_styles_html_classes'] = [
+      '#type' => 'textfield',
+      '#title' => t('HTML Classes'),
+      '#default_value' => $component->get('layout_target_styles_html_classes'),
+      '#weight' => 91,
+    ];
+
+    $form['layout_target_styles_html_id'] = [
+      '#type' => 'textfield',
+      '#title' => t('HTML ID'),
+      '#default_value' => $component->get('layout_target_styles_html_id'),
+      '#weight' => 91,
+    ];
+  }
+}
+
+/**
+ * Custom submit handler for submitting LB block forms.
+ *
+ * Persists the configured block style to the component configuration data,
+ * which is later persisted to section storage by layout builder's base form.
+ */
+function _layout_target_styles_submit_block_form(array $form, FormStateInterface $formState) {
+  /** @var \Drupal\layout_builder\Form\ConfigureBlockFormBase $formObject */
+  $formObject = $formState->getFormObject();
+
+  $component = $formObject->getCurrentComponent();
+  $component->set('layout_target_styles_html_classes', $formState->getValue('layout_target_styles_html_classes'));
+  $component->set('layout_target_styles_html_id', $formState->getValue('layout_target_styles_html_id'));
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Modify the configuration form for layout builder sections (layouts).
+ */
+function layout_target_styles_form_layout_builder_configure_section_alter(&$form, FormStateInterface $form_state, $form_id) {
+  /** @var \Drupal\layout_builder\Form\ConfigureBlockFormBase $formObject */
+  $formObject = $form_state->getFormObject();
+
+  $config = $formObject->getLayout()->getConfiguration();
+
+  // Our submit handler must execute before the default one, because the
+  // default handler stores the section & component data in the tempstore
+  // and we need to update those objects before that happens.
+  array_unshift($form['#submit'], '_layout_target_styles_submit_section_form');
+
+  $form['layout_target_styles_html_classes'] = [
+    '#type' => 'textfield',
+    '#title' => t('HTML Classes'),
+    '#default_value' => $config['layout_target_styles_html_classes'] ?? '',
+    '#weight' => 91,
+  ];
+  $form['layout_target_styles_html_id'] = [
+    '#type' => 'textfield',
+    '#title' => t('HTML ID'),
+    '#default_value' => $config['layout_target_styles_html_id'] ?? '',
+    '#weight' => 91,
+  ];
+}
+
+/**
+ * Custom submit handler for submitting LB section forms.
+ *
+ * This is used to persist the selected style to the layout configuration
+ * array, which layout builder's ConfigureSectionForm will persist to section
+ * storage.
+ */
+function _layout_target_styles_submit_section_form(array $form, FormStateInterface $formState) {
+  $formObject = $formState->getFormObject();
+  $config = $formObject->getLayout()->getConfiguration();
+  if (!$config) {
+    $config = [];
+  }
+  $config = array_merge($config, [
+    'layout_target_styles_html_classes' => $formState->getValue('layout_target_styles_html_classes'),
+    'layout_target_styles_html_id' => $formState->getValue('layout_target_styles_html_id'),
+  ]);
+
+  $formObject
+    ->getLayout()
+    ->setConfiguration($config);
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function layout_target_styles_preprocess_layout(&$variables) {
+  if (!isset($variables['attributes']['class']) || !is_array($variables['attributes']['class'])) {
+    $variables['attributes']['class'] = [];
+  }
+
+  if (isset($variables['settings']['layout_target_styles_html_classes'])) {
+    $variables['attributes']['class'] = array_merge($variables['attributes']['class'], [$variables['settings']['layout_target_styles_html_classes']]);
+  }
+  if (isset($variables['settings']['layout_target_styles_html_id'])) {
+    $variables['attributes']['id'] = $variables['settings']['layout_target_styles_html_id'];
+  }
+}
